@@ -23,7 +23,7 @@ import { ReplyError } from "ioredis";
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy" | "cf-worker";
 
-const aliRegions = ["hangzhou", "beijing", "shanghai", "chengdu"] as const;
+const aliRegions = ["hongkong", "hangzhou", "beijing", "shanghai", "chengdu"] as const;
 type AliRegion = (typeof aliRegions)[number];
 
 function createAliProxiesObject<T extends readonly string[]>(regions: T) {
@@ -179,23 +179,23 @@ const config = createNetworkConfig({
 		bulkSnapshot: {
 			limiters: bili_normal,
 			provider: "bilibili",
-			proxies: ["alicloud_hangzhou"],
+			proxies: ["alicloud_beijing"],
 		},
 		getLatestVideos: {
 			provider: "bilibili",
-			proxies: ["alicloud_hangzhou", "cf-worker"],
+			proxies: ["alicloud_beijing", "cf-worker"],
 		},
 		getVideoInfo: {
 			provider: "bilibili",
-			proxies: ["alicloud_hangzhou", "cf-worker"],
+			proxies: ["alicloud_beijing"],
 		},
 		snapshotMilestoneVideo: {
 			provider: "bilibili",
-			proxies: ["alicloud_hangzhou", "cf-worker", "native"],
+			proxies: ["alicloud_beijing", "cf-worker", "native"],
 		},
 		snapshotVideo: {
 			provider: "bilibili",
-			proxies: ["alicloud_hangzhou", "cf-worker"],
+			proxies: ["alicloud_beijing", "cf-worker"],
 		},
 		test: {
 			provider: "test",

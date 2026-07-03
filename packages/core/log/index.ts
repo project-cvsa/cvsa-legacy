@@ -63,6 +63,7 @@ const createTransport = (level: string, filename: string) => {
 
 	if (level === "silly") {
 		maxsize = 500 * MB;
+		maxFiles = 2;
 	} else if (level === "warn") {
 		maxsize = 10 * MB;
 		maxFiles = 5;

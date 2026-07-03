@@ -13,6 +13,8 @@ export const apps = [
 			LOG_ERR: "logs/error.log",
 			LOG_VERBOSE: "logs/verbose.log",
 			LOG_WARN: "logs/warn.log",
+			ALIBABA_CLOUD_ACCESS_KEY_ID: process.env.ALIBABA_CLOUD_ACCESS_KEY_ID,
+			ALIBABA_CLOUD_ACCESS_KEY_SECRET: process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET
 		},
 		interpreter: "bun",
 		name: "crawler-worker",
@@ -44,6 +46,9 @@ export const apps = [
 	{
 		cwd: "./packages/backend",
 		env: {
+			LOG_ERR: "logs/error.log",
+			LOG_VERBOSE: "logs/verbose.log",
+			LOG_WARN: "logs/warn.log",
 			NODE_ENV: "production",
 		},
 		interpreter: "bun",

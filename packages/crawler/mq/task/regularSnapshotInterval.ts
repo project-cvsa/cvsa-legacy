@@ -15,7 +15,8 @@ export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	if (viewsDiff === 0) return 72;
 	const speedPerDay = (viewsDiff / (hoursDiff + 0.001)) * 24;
 	if (speedPerDay < 6) return 36;
-	if (speedPerDay < 120) return 24;
-	if (speedPerDay < 320) return 12;
-	return 6;
+	if (speedPerDay < 24) return 24;
+	if (speedPerDay < 96) return 6;
+	if (speedPerDay < 192) return 3;
+	return 2;
 };

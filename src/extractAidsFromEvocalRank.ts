@@ -311,7 +311,7 @@ export interface Diff {
 }
 
 const aids = new Set<string>();
-const f = Bun.file("evocalrank.json");
+const f = Bun.file("temp/evocalrank.json");
 
 for (let i = 699; i >= 520; i--) {
 	const url = `https://www.evocalrank.com/data/rank_data/${i}.json`;
