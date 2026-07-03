@@ -18,7 +18,7 @@ export async function queueLatestVideos(): Promise<number | null> {
 	timeFromDate.setDate(timeFromDate.getDate() - 3);
 	const timeFrom = formatDateString(timeFromDate);
 
-	const pageSize = 100;
+	const pageSize = 50;
 	let page = 1;
 	let numPages = 1;
 	let i = 0;
@@ -42,7 +42,6 @@ export async function queueLatestVideos(): Promise<number | null> {
 			logger.verbose("No more videos found", "net", "fn:queueLatestVideos()");
 			break;
 		}
-		let allExists = true;
 		let delay = 0;
 		for (const aid of aids) {
 			const videoExists = await videoExistsInAllData(aid);
@@ -62,7 +61,6 @@ export async function queueLatestVideos(): Promise<number | null> {
 				}
 			);
 			videosFound.add(aid);
-			allExists = false;
 			delay += Math.random() * SECOND * 1.5;
 		}
 		i += aids.length;
@@ -71,9 +69,6 @@ export async function queueLatestVideos(): Promise<number | null> {
 			"net",
 			"fn:queueLatestVideos()"
 		);
-		if (allExists) {
-			return 0;
-		}
 		page++;
 		const randomTime = Math.random() * 4000;
 		const delta = SECOND;
