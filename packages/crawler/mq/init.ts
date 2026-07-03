@@ -9,7 +9,7 @@ export async function initMQ() {
 	await initSnapshotWindowCounts(sql, redis);
 
 	await LatestVideosQueue.upsertJobScheduler("getLatestVideos", {
-		every: 1 * MINUTE,
+		every: 3 * MINUTE,
 		immediately: true,
 	});
 

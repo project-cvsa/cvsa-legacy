@@ -5,15 +5,41 @@ import { LatestVideosQueue } from "mq/index";
 import { getLatestVideoAids } from "net/getLatestVideoAids";
 import { sleep } from "utils/sleep";
 
+function formatDateString(date: Date): string {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${year}${month}${day}`;
+}
+
 export async function queueLatestVideos(): Promise<number | null> {
+	const timeTo = formatDateString(new Date());
+	const timeFromDate = new Date();
+	timeFromDate.setDate(timeFromDate.getDate() - 3);
+	const timeFrom = formatDateString(timeFromDate);
+
+	const pageSize = 100;
 	let page = 1;
+	let numPages = 1;
 	let i = 0;
 	const videosFound = new Set();
-	while (true) {
-		const pageSize = page === 1 ? 10 : 30;
-		const aids = await getLatestVideoAids(page, pageSize);
+	while (page <= numPages) {
+		const { aids, numPages: np, numResults } = await getLatestVideoAids(
+			page,
+			pageSize,
+			timeFrom,
+			timeTo
+		);
+		if (page === 1) {
+			numPages = np;
+			logger.log(
+				`Time range ${timeFrom}-${timeTo}: ${numResults} videos across ${numPages} pages.`,
+				"net",
+				"fn:queueLatestVideos()"
+			);
+		}
 		if (aids.length === 0) {
-			logger.verbose("No more videos found", "net", "fn:insertLatestVideos()");
+			logger.verbose("No more videos found", "net", "fn:queueLatestVideos()");
 			break;
 		}
 		let allExists = true;
@@ -41,7 +67,7 @@ export async function queueLatestVideos(): Promise<number | null> {
 		}
 		i += aids.length;
 		logger.log(
-			`Page ${page} crawled, total: ${videosFound.size}/${i} videos added/observed.`,
+			`Page ${page}/${numPages} crawled, total: ${videosFound.size}/${i} videos added/observed.`,
 			"net",
 			"fn:queueLatestVideos()"
 		);

@@ -6,6 +6,7 @@ interface BaseResponse<T> {
 }
 
 export type VideoListResponse = BaseResponse<VideoListData>;
+export type NewListRankResponse = BaseResponse<NewListRankData>;
 export type VideoDetailsResponse = BaseResponse<VideoDetailsData>;
 export type VideoInfoResponse = BaseResponse<VideoInfoData>;
 export type MediaListInfoResponse = BaseResponse<MediaListInfoData>;
@@ -193,6 +194,57 @@ interface VideoListData {
 		size: number;
 		count: number;
 	};
+}
+
+interface NewListRankData {
+	exp_list: null;
+	show_module_list: string[];
+	result: NewListRankVideo[] | null;
+	show_column: number;
+	rqt_type: string;
+	numPages: number;
+	numResults: number;
+	crr_query: string;
+	pagesize: number;
+	suggest_keyword: string;
+	egg_info: null;
+	cache: number;
+	exp_bits: number;
+	exp_str: string;
+	seid: string;
+	msg: string;
+	egg_hit: number;
+	page: number;
+}
+
+interface NewListRankVideo {
+	pubdate: string;
+	pic: string;
+	tag: string;
+	duration: number;
+	id: number;
+	rank_score: number;
+	badgepay: boolean;
+	senddate: number;
+	author: string;
+	review: number;
+	mid: number;
+	is_union_video: number;
+	rank_index: number;
+	type: string;
+	arcrank: string;
+	play: string;
+	rank_offset: number;
+	description: string;
+	video_review: number;
+	is_pay: number;
+	favorites: number;
+	arcurl: string;
+	bvid: string;
+	title: string;
+	vt: number;
+	enable_vt: number;
+	vt_display: string;
 }
 
 type VideoRights = {

@@ -1,8 +1,8 @@
 {
 	"include": ["**/*.ts"],
 	"compilerOptions": {
-		"baseUrl": ".",
 		"paths": {
+			"*": ["./*"],
 			"@core/*": ["./packages/core/*"],
 			"@crawler/*": ["./packages/crawler/*"]
 		},
