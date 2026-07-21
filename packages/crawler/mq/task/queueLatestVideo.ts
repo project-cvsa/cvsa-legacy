@@ -18,7 +18,7 @@ export async function queueLatestVideos(): Promise<number | null> {
 	timeFromDate.setDate(timeFromDate.getDate() - 3);
 	const timeFrom = formatDateString(timeFromDate);
 
-	const pageSize = 50;
+	const pageSize = 30;
 	let page = 1;
 	let numPages = 1;
 	let i = 0;

@@ -1,3 +1,4 @@
+export * from "./addSongsFromEvocalRank";
 export * from "./archiveSnapshots";
 export * from "./collectSongs";
 export * from "./dispatchMilestoneSnapshots";

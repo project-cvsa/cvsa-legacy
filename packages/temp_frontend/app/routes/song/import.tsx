@@ -1,17 +1,23 @@
-import type { App } from "@backend/src";
-import { treaty } from "@elysiajs/eden";
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Title } from "@/components/Title";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const app = treaty<App>(import.meta.env.VITE_API_URL || "");
+const apiURL = import.meta.env.VITE_API_URL || "";
+
+type BatchStreamEvent =
+	| { type: "missing"; missingIDs: number[] }
+	| { type: "queued"; aid: number; jobID: string }
+	| { type: "queue-error"; aid: number; message: string }
+	| { type: "complete"; queuedCount: number };
 
 export default function BatchSongImport() {
 	const [text, setText] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [missingIDs, setMissingIDs] = useState<number[] | null>(null);
+	const [queuedCount, setQueuedCount] = useState(0);
+	const [queueErrors, setQueueErrors] = useState<number[]>([]);
 	const [error, setError] = useState("");
 
 	const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -19,21 +25,59 @@ export default function BatchSongImport() {
 		setIsSubmitting(true);
 		setError("");
 		setMissingIDs(null);
+		setQueuedCount(0);
+		setQueueErrors([]);
 
 		try {
-			const { data, error: responseError } = await app.song.import.bilibili.batch.post(
-				{ text },
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
-					},
-				}
-			);
-			if (responseError || !data) {
-				setError(responseError?.value?.message || "收录失败");
+			const response = await fetch(`${apiURL}/song/import/bilibili/batch`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ text }),
+			});
+
+			if (!response.ok) {
+				const data = (await response.json().catch(() => null)) as {
+					message?: string;
+				} | null;
+				setError(data?.message || "收录失败");
 				return;
 			}
-			setMissingIDs(data.missingIDs);
+
+			if (!response.body) {
+				throw new Error("浏览器不支持流式响应");
+			}
+
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
+			let buffer = "";
+			while (true) {
+				const { done, value } = await reader.read();
+				buffer += decoder.decode(value, { stream: !done });
+				const lines = buffer.split("\n");
+				buffer = lines.pop() || "";
+				for (const line of lines) {
+					if (!line) continue;
+					const event = JSON.parse(line) as BatchStreamEvent;
+					switch (event.type) {
+						case "missing":
+							setMissingIDs(event.missingIDs);
+							break;
+						case "queued":
+							setQueuedCount((count) => count + 1);
+							break;
+						case "queue-error":
+							setQueueErrors((aids) => [...aids, event.aid]);
+							break;
+						case "complete":
+							setQueuedCount(event.queuedCount);
+							break;
+					}
+				}
+				if (done) break;
+			}
 		} catch {
 			setError("网络错误，请稍后重试");
 		} finally {
@@ -71,8 +115,9 @@ export default function BatchSongImport() {
 					)}
 					{missingIDs && (
 						<p className="mt-4 rounded-md bg-green-100 p-3 text-green-700 dark:bg-green-900 dark:text-green-200">
-							已提交 {missingIDs.length} 个缺失视频：
+							发现 {missingIDs.length} 个缺失视频，已提交 {queuedCount} 个：
 							{missingIDs.length > 0 ? ` ${missingIDs.join(", ")}` : " 无"}
+							{queueErrors.length > 0 && `（${queueErrors.length} 个提交失败）`}
 						</p>
 					)}
 				</CardContent>

@@ -5,7 +5,53 @@ import { bilibiliMetadata, db } from "@core/drizzle";
 import { inArray } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const encoder = new TextEncoder();
+
+type BatchStreamEvent =
+	| { type: "missing"; missingIDs: number[] }
+	| { type: "queued"; aid: number; jobID: string }
+	| { type: "queue-error"; aid: number; message: string }
+	| { type: "complete"; queuedCount: number };
+
+function toNDJSON(event: BatchStreamEvent) {
+	return encoder.encode(`${JSON.stringify(event)}\n`);
+}
+
+function createBatchImportStream(missingIDs: number[], uid: string) {
+	return new ReadableStream<Uint8Array>({
+		async start(controller) {
+			let queuedCount = 0;
+			controller.enqueue(toNDJSON({ type: "missing", missingIDs }));
+
+			for (const aid of missingIDs) {
+				try {
+					const job = await LatestVideosQueue.add("getVideoInfo", {
+						aid,
+						insertSongs: true,
+						uid,
+					});
+					if (!job.id) {
+						throw new Error("Queue did not return a job ID.");
+					}
+					queuedCount += 1;
+					controller.enqueue(toNDJSON({ type: "queued", aid, jobID: job.id }));
+				} catch (error) {
+					console.error("failed to enqueue video:", aid, error);
+					controller.enqueue(
+						toNDJSON({
+							type: "queue-error",
+							aid,
+							message: error instanceof Error ? error.message : "Unknown queue error",
+						})
+					);
+				}
+			}
+
+			controller.enqueue(toNDJSON({ type: "complete", queuedCount }));
+			controller.close();
+		},
+	});
+}
 
 export const batchAddSongHandler = new Elysia().use(requireAuth).post(
 	"/song/import/bilibili/batch",
@@ -43,32 +89,19 @@ export const batchAddSongHandler = new Elysia().use(requireAuth).post(
 		const existingAids = new Set(existingVideos.map(({ aid }) => aid));
 		const missingIDs = validAids.filter((aid) => !existingAids.has(aid));
 
-		for (const aid of missingIDs) {
-			const job = await LatestVideosQueue.add("getVideoInfo", {
-				aid,
-				insertSongs: true,
-				uid: user.unqId,
-			});
-			if (!job.id) {
-				console.warn("failed to insert video:", aid);
-			}
-			await sleep(300);
-		}
-
-		return {
-			missingIDs,
-			queuedCount: missingIDs.length,
-		};
+		return new Response(createBatchImportStream(missingIDs, user.unqId), {
+			headers: {
+				"Cache-Control": "no-cache",
+				"Content-Type": "application/x-ndjson; charset=utf-8",
+				"X-Accel-Buffering": "no",
+			},
+		});
 	},
 	{
 		body: t.Object({
 			text: t.String(),
 		}),
 		response: {
-			200: t.Object({
-				missingIDs: t.Array(t.Integer()),
-				queuedCount: t.Integer(),
-			}),
 			400: t.Object({
 				message: t.String(),
 				invalidIDs: t.Array(t.String()),

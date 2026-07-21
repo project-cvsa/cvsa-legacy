@@ -1,6 +1,6 @@
 import { sql } from "@core/db/dbNew";
 import { redis } from "@core/db/redis";
-import { HOUR, MINUTE, SECOND } from "@core/lib";
+import { HOUR, MINUTE, SECOND, WEEK } from "@core/lib";
 import logger from "@core/log";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule";
 import { ClassifyVideoQueue, LatestVideosQueue, MiscQueue, SnapshotQueue } from "mq/index";
@@ -20,6 +20,11 @@ export async function initMQ() {
 
 	await LatestVideosQueue.upsertJobScheduler("collectSongs", {
 		every: 3 * MINUTE,
+		immediately: true,
+	});
+
+	await LatestVideosQueue.upsertJobScheduler("addSongsFromEvocalRank", {
+		every: WEEK,
 		immediately: true,
 	});
 

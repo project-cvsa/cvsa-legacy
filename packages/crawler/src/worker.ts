@@ -5,6 +5,7 @@ import { type ConnectionOptions, type Job, Worker } from "bullmq";
 import { collectQueueMetrics } from "mq/exec/collectQueueMetrics";
 import { directSnapshotWorker } from "mq/exec/directSnapshot";
 import {
+	addSongsFromEvocalRankWorker,
 	archiveSnapshotsWorker,
 	bulkSnapshotTickWorker,
 	collectSongsWorker,
@@ -47,6 +48,8 @@ const latestVideoWorker = new Worker(
 	"latestVideos",
 	async (job: Job) => {
 		switch (job.name) {
+			case "addSongsFromEvocalRank":
+				return await addSongsFromEvocalRankWorker(job);
 			case "getLatestVideos":
 				return await getLatestVideosWorker(job);
 			case "getVideoInfo":
