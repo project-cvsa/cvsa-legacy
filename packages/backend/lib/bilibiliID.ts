@@ -58,6 +58,20 @@ export function biliIDToAID(id: string) {
 	if (detected.type === "bv") {
 		return bv2av(detected.id);
 	} else {
-		return Number.parseInt(detected.id.slice(2));
+		return Number.parseInt(detected.id.slice(2), 10);
 	}
+}
+
+/**
+ * Converts a Bilibili ID or a bare AID to an AID.
+ * Bare AIDs are useful for batch import, where users commonly paste a
+ * newline-separated list containing both `av123` and `123` forms.
+ */
+export function biliIDOrAIDToAID(id: string) {
+	const normalizedID = id.trim();
+	if (/^[0-9]+$/.test(normalizedID)) {
+		const aid = Number.parseInt(normalizedID, 10);
+		return Number.isSafeInteger(aid) && aid > 0 ? aid : null;
+	}
+	return biliIDToAID(normalizedID);
 }

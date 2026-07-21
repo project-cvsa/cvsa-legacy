@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MilestoneVideos } from "@/routes/home/Milestone";
 import type { Route } from "./+types/index";
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
 	return [{ title: "中V档案馆" }];
 }
 
@@ -35,7 +35,7 @@ export default function Home() {
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
 					/>
-					<a href={`/song/${input}/add`}>
+					<a href={input.trim() ? `/song/${input}/add` : "/song/import"}>
 						<Button>收录视频</Button>
 					</a>
 					<a href={`/video/${input}/info`}>

@@ -3,6 +3,7 @@ import { pingHandler } from "@backend/routes/ping";
 import { rootHandler } from "@backend/routes/root";
 import { searchHandler } from "@backend/routes/search";
 import { addSongHandler } from "@backend/routes/song/add";
+import { batchAddSongHandler } from "@backend/routes/song/batch-add";
 import { deleteSongHandler } from "@backend/routes/song/delete";
 import { songHandler } from "@backend/routes/song/info";
 import { closeMileStoneHandler } from "@backend/routes/song/milestone";
@@ -48,6 +49,7 @@ const app = new Elysia({
 	.use(searchHandler)
 	.use(getVideoSnapshotsHandler)
 	.use(addSongHandler)
+	.use(batchAddSongHandler)
 	.use(deleteSongHandler)
 	.use(songEtaHandler)
 	.use(getUnlabelledVideos)
